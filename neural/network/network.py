@@ -209,7 +209,7 @@ class Network(object):
         return container
 
     def run(self, dt, steps=0, rate=1, verbose=False, **kwargs):
-        solver = kwargs.pop('solver', self.solver)
+        solver = kwargs.pop('solver', self.solver) # TODO: change solver at run time 
         if not self._iscompiled:
             raise Exception("Please compile before running the network.")
 
@@ -255,7 +255,8 @@ class Network(object):
             for recorder in recorders:
                 recorder.update(i)
 
-    def compile(self, dtype=None, debug=False, backend='cuda'):
+    def compile(self, dtype=None, debug=False, **kwargs):
+        backend = kwargs.pop('backend', self.backend)
         dtype = dtype or np.float64
         for c in self.containers.values():
             dct = {}
@@ -289,7 +290,7 @@ class Network(object):
                 if debug:
                     s = ''.join([", {}={}".format(*k) for k in dct.items()])
                     print("{}.cuda_compile(dtype=dtype, num={}{})".format(
-                    c.name, c.num, s))
+                        c.name, c.num, s))
         self._iscompiled = True
 
     def record(self, *args):
@@ -450,7 +451,6 @@ class Network(object):
     def get_obj(self, name):
         if name in self.containers:
             return self.containers[name]
-        elif name in self.inputs:
+        if name in self.inputs:
             return self.inputs[name]
-        else:
-            raise TypeError("Unexpected name: '{}'".format(name))
+        raise TypeError("Unexpected name: '{}'".format(name))
